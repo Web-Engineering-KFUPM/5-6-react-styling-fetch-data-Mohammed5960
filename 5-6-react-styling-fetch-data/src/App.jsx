@@ -186,7 +186,6 @@ import UserModal from "./components/UserModal";
 import "./index.css";
 
 export default function App() {
-  // State variables (already complete for students)
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -203,7 +202,31 @@ export default function App() {
      Implement fetch logic inside this useEffect.
      ========================================================= */
   useEffect(() => {
-    // TODO 2.1: Implement fetching users here (see lab instructions)
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(
+          "https://jsonplaceholder.typicode.com/users"
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch users");
+        }
+
+        const data = await response.json();
+
+        setUsers(data);
+        setFilteredUsers(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   /* =========================================================
@@ -214,10 +237,16 @@ export default function App() {
      Dependency array MUST be: [searchTerm, users]
      ========================================================= */
   useEffect(() => {
-    // TODO 2.2: Implement filtering users here (see lab instructions)
+    if (searchTerm === "") {
+      setFilteredUsers(users);
+    } else {
+      const filtered = users.filter((user) =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    }
   }, [searchTerm, users]);
 
-  // Modal handlers (already complete)
   function handleUserClick(user) {
     setSelectedUser(user);
     setShowModal(true);
@@ -241,16 +270,18 @@ export default function App() {
       <Container>
         <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 
-        {/* Loading & Error UI (already complete) */}
         {loading && <Spinner animation="border" />}
         {error && <Alert variant="danger">{error}</Alert>}
 
-        {/* Show list only when not loading and no error */}
         {!loading && !error && (
           <UserList users={filteredUsers} onUserClick={handleUserClick} />
         )}
 
-        <UserModal show={showModal} user={selectedUser} onHide={handleCloseModal} />
+        <UserModal
+          show={showModal}
+          user={selectedUser}
+          onHide={handleCloseModal}
+        />
       </Container>
 
       {/* TODO 1.1: Set footer className EXACTLY as in lab instructions */}
